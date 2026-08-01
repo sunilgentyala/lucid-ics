@@ -91,7 +91,7 @@ docs/                  GitHub Pages project site
 ```bibtex
 @inproceedings{gentyala2026lucidics,
   title     = {LUCID-ICS: An Explainable, LLM-Ready Triage Framework for SCADA/ICS Intrusion Detection},
-  author    = {Gentyala, Sunil},
+  author    = {Gentyala, Sunil and Caprio, Floriano and Kasturi, Akhila and Martin, John},
   booktitle = {IEEE MILCOM 2026 Workshop on Industrial Control Systems and Critical Infrastructure Security (ICSCI)},
   year      = {2026}
 }
