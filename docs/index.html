@@ -136,6 +136,29 @@
     text-transform:uppercase; letter-spacing:0.08em; margin-top:6px;
   }
 
+  /* author roster */
+  .authors-grid{
+    display:grid; grid-template-columns:repeat(auto-fit, minmax(220px,1fr));
+    gap:1px; background:var(--border);
+    border:1px solid var(--border); border-radius:var(--radius);
+    overflow:hidden;
+  }
+  .author-card{
+    background:var(--panel); padding:20px 20px 18px; position:relative;
+  }
+  .author-card .author-ord{
+    display:block; font-family:var(--mono); font-size:11px; color:var(--accent-dim);
+    letter-spacing:0.08em; margin-bottom:10px;
+  }
+  .author-card h4{
+    font-family:var(--sans); font-weight:600; font-size:1.02rem;
+    color:var(--text); margin:0 0 6px; letter-spacing:0.005em;
+  }
+  .author-card p{margin:0 0 3px; font-size:12.5px; line-height:1.5;}
+  .author-card .author-role{color:var(--muted); font-style:italic;}
+  .author-card .author-org{color:var(--text); font-family:var(--mono); font-size:11.5px; letter-spacing:0.01em;}
+  .author-card .author-loc{color:var(--muted); font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:0.05em; margin-top:6px;}
+
   /* ---------- panels ---------- */
   section{padding:64px 0;}
   section.alt{background:linear-gradient(180deg, rgba(16,28,43,0.55), rgba(16,28,43,0));}
@@ -429,12 +452,42 @@
     <div class="section-head">
       <span class="section-num">04 — PAPER</span>
       <h2>LUCID-ICS: An Explainable, LLM-Ready Triage Framework for SCADA/ICS Intrusion Detection</h2>
-      <p>Sunil Gentyala, Floriano Caprio, Akhila Kasturi, John Martin &middot; submitted to the
-      2nd IEEE MILCOM Workshop on Industrial Control Systems and Critical Infrastructure
-      Security (ICSCI 2026)</p>
+      <p>Submitted to the 2nd IEEE MILCOM Workshop on Industrial Control Systems and Critical
+      Infrastructure Security (ICSCI 2026)</p>
     </div>
 
-    <div class="panel prose">
+    <div class="authors-grid">
+      <div class="author-card">
+        <span class="author-ord">01</span>
+        <h4>Sunil Gentyala</h4>
+        <p class="author-role">Lead Cybersecurity and AI Security Consultant</p>
+        <p class="author-org">HCL America Inc. (HCLTech)</p>
+        <p class="author-loc">Dallas, TX, USA</p>
+      </div>
+      <div class="author-card">
+        <span class="author-ord">02</span>
+        <h4>Floriano Caprio</h4>
+        <p class="author-role">Senior Solution Architect, Quantum Computing</p>
+        <p class="author-org">Universit&agrave; Campus Bio-Medico di Roma</p>
+        <p class="author-loc">Rome, Italy</p>
+      </div>
+      <div class="author-card">
+        <span class="author-ord">03</span>
+        <h4>Akhila Kasturi</h4>
+        <p class="author-role">Research Analyst Lead</p>
+        <p class="author-org">HCLTech</p>
+        <p class="author-loc">Dallas, TX, USA</p>
+      </div>
+      <div class="author-card">
+        <span class="author-ord">04</span>
+        <h4>John Martin</h4>
+        <p class="author-role">Senior Advisory Technical Architect</p>
+        <p class="author-org">HCLTech</p>
+        <p class="author-loc">Auckland, New Zealand</p>
+      </div>
+    </div>
+
+    <div class="panel prose" style="margin-top:18px;">
       <h3>Status</h3>
       <p style="font-size:14.5px;">This work has been submitted to the workshop's review process and is
       not yet publicly released. The manuscript, full abstract, and citation details will be posted
