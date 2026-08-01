@@ -1,0 +1,549 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LUCID-ICS — Explainable ML+LLM Triage for SCADA/ICS Intrusion Detection</title>
+<meta name="description" content="An open-source, explainable ML + LLM-ready triage framework for SCADA/ICS intrusion detection. Paper submitted to IEEE MILCOM 2026 ICSCI workshop.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='4' fill='%230a121c'/%3E%3Crect x='4' y='4' width='24' height='24' rx='2' fill='none' stroke='%23f2a93b' stroke-width='2'/%3E%3Ccircle cx='16' cy='16' r='5' fill='%23f2a93b'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0a121c;
+    --bg-grid: rgba(143,164,184,0.05);
+    --panel:#101c2b;
+    --panel-2:#0d1826;
+    --border:#243b52;
+    --border-bright:#33526f;
+    --text:#e9eef3;
+    --muted:#8fa4b9;
+    --muted-dim:#5f7b91;
+    --accent:#f2a93b;
+    --accent-dim:#8a621f;
+    --ok:#45cf9e;
+    --danger:#e2584f;
+    --mono: 'IBM Plex Mono', ui-monospace, monospace;
+    --sans: 'IBM Plex Sans', system-ui, sans-serif;
+    --display: 'Big Shoulders Display', var(--sans);
+    --radius: 3px;
+    --maxw: 1040px;
+  }
+
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:
+      linear-gradient(var(--bg-grid) 1px, transparent 1px) 0 0/100% 28px,
+      linear-gradient(90deg, var(--bg-grid) 1px, transparent 1px) 0 0/28px 100%,
+      var(--bg);
+    color:var(--text);
+    font-family:var(--sans);
+    font-size:16px;
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  img{max-width:100%; display:block;}
+  a{color:var(--accent);}
+  a:focus-visible, button:focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
+
+  .wrap{max-width:var(--maxw); margin:0 auto; padding:0 24px;}
+
+  /* ---------- top status bar ---------- */
+  .statusbar{
+    position:sticky; top:0; z-index:20;
+    background:rgba(10,18,28,0.92);
+    backdrop-filter:blur(6px);
+    border-bottom:1px solid var(--border);
+  }
+  .statusbar .wrap{
+    display:flex; align-items:center; justify-content:space-between;
+    height:56px;
+  }
+  .brand{
+    display:flex; align-items:center; gap:10px;
+    font-family:var(--mono); font-weight:600; letter-spacing:0.04em;
+    color:var(--text); text-decoration:none; font-size:15px;
+  }
+  .brand .led{
+    width:9px; height:9px; border-radius:50%;
+    background:var(--ok);
+    box-shadow:0 0 8px var(--ok);
+    animation: pulse 2.4s ease-in-out infinite;
+  }
+  @media (prefers-reduced-motion: reduce){ .led{animation:none;} }
+  @keyframes pulse{ 0%,100%{opacity:1;} 50%{opacity:0.35;} }
+  nav{display:flex; gap:22px;}
+  nav a{
+    color:var(--muted); text-decoration:none; font-size:13.5px;
+    font-family:var(--mono); letter-spacing:0.03em;
+    padding:4px 0; border-bottom:1px solid transparent;
+  }
+  nav a:hover{color:var(--text); border-color:var(--border-bright);}
+
+  /* ---------- hero ---------- */
+  .hero{padding:72px 0 40px; position:relative;}
+  .eyebrow{
+    font-family:var(--mono); font-size:12.5px; color:var(--accent);
+    letter-spacing:0.12em; text-transform:uppercase;
+    display:flex; align-items:center; gap:10px; margin-bottom:18px;
+  }
+  .eyebrow::before{content:''; width:22px; height:1px; background:var(--accent-dim);}
+  h1{
+    font-family:var(--display); font-weight:800;
+    font-size:clamp(2.6rem, 5.4vw, 4.4rem);
+    line-height:0.98; letter-spacing:0.005em;
+    margin:0 0 22px; text-wrap:balance;
+    color:#fbfdfe;
+  }
+  h1 .accentline{color:var(--accent);}
+  .lede{
+    font-size:1.14rem; color:var(--muted); max-width:640px;
+    margin:0 0 30px;
+  }
+  .hero-actions{display:flex; gap:12px; flex-wrap:wrap; margin-bottom:52px;}
+  .btn{
+    font-family:var(--mono); font-size:13.5px; letter-spacing:0.02em;
+    padding:11px 18px; border-radius:var(--radius);
+    text-decoration:none; display:inline-flex; align-items:center; gap:8px;
+    border:1px solid var(--border-bright);
+    transition:border-color .15s, background .15s;
+  }
+  .btn-primary{background:var(--accent); color:#1a1204; border-color:var(--accent); font-weight:600;}
+  .btn-primary:hover{background:#ffbb52;}
+  .btn-ghost{color:var(--text); background:transparent;}
+  .btn-ghost:hover{border-color:var(--accent); color:var(--accent);}
+
+  /* telemetry stat strip */
+  .telemetry{
+    display:grid; grid-template-columns:repeat(auto-fit, minmax(128px,1fr));
+    gap:1px; background:var(--border);
+    border:1px solid var(--border); border-radius:var(--radius);
+    overflow:hidden;
+  }
+  .tile{
+    background:var(--panel); padding:16px 16px 14px;
+  }
+  .tile .val{
+    font-family:var(--mono); font-weight:600; font-size:1.55rem;
+    color:var(--text); font-variant-numeric:tabular-nums;
+  }
+  .tile .val small{font-size:0.9rem; color:var(--muted); font-weight:400;}
+  .tile .lbl{
+    font-family:var(--mono); font-size:10.5px; color:var(--muted);
+    text-transform:uppercase; letter-spacing:0.08em; margin-top:6px;
+  }
+
+  /* ---------- panels ---------- */
+  section{padding:64px 0;}
+  section.alt{background:linear-gradient(180deg, rgba(16,28,43,0.55), rgba(16,28,43,0));}
+  .section-head{margin-bottom:34px; max-width:680px;}
+  .section-num{
+    font-family:var(--mono); color:var(--accent-dim); font-size:12.5px;
+    letter-spacing:0.1em; margin-bottom:8px; display:block;
+  }
+  h2{
+    font-family:var(--display); font-weight:700; font-size:clamp(1.7rem,3vw,2.3rem);
+    margin:0 0 14px; letter-spacing:0.01em; text-wrap:balance;
+  }
+  .section-head p{color:var(--muted); margin:0; font-size:1.02rem;}
+
+  .panel{
+    position:relative;
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    padding:26px 28px;
+  }
+  .panel::before, .panel::after{
+    content:''; position:absolute; width:9px; height:9px;
+    border:1px solid var(--accent-dim); opacity:0.7;
+  }
+  .panel::before{top:-1px; left:-1px; border-right:none; border-bottom:none;}
+  .panel::after{bottom:-1px; right:-1px; border-left:none; border-top:none;}
+  .panel h3{
+    font-family:var(--mono); font-size:14px; font-weight:600;
+    color:var(--text); margin:0 0 4px; letter-spacing:0.02em;
+  }
+  .panel .cap{color:var(--muted); font-size:13.5px; margin:0 0 16px;}
+
+  /* pipeline */
+  .pipeline-figure{margin-top:8px;}
+  .pipeline-figure img{border-radius:var(--radius); background:#fff; padding:8px;}
+
+  .prose p{color:var(--muted); max-width:70ch;}
+  .prose strong{color:var(--text); font-weight:600;}
+
+  /* results grid */
+  .results-grid{
+    display:grid; grid-template-columns:repeat(auto-fit, minmax(280px,1fr));
+    gap:18px;
+  }
+  .results-grid img{border-radius:2px; background:#fff; padding:6px;}
+
+  /* alert / annunciator callout */
+  .annunciator{
+    border:1px solid var(--danger); border-radius:var(--radius);
+    background:linear-gradient(180deg, rgba(226,88,79,0.09), rgba(226,88,79,0.02));
+    padding:20px 24px; margin-top:22px;
+    display:flex; gap:16px; align-items:flex-start;
+  }
+  .annunciator .tag{
+    font-family:var(--mono); font-size:11px; font-weight:600;
+    color:#1a0a08; background:var(--danger);
+    padding:3px 8px; border-radius:2px; letter-spacing:0.06em;
+    white-space:nowrap; flex-shrink:0; margin-top:2px;
+  }
+  .annunciator p{margin:0; color:#f2d9d6; font-size:14.5px;}
+  .annunciator strong{color:#fff;}
+
+  .disclose{
+    border:1px solid var(--border-bright); border-radius:var(--radius);
+    background:var(--panel-2); padding:18px 22px; margin-top:16px;
+  }
+  .disclose .tag{
+    font-family:var(--mono); font-size:11px; font-weight:600;
+    color:#1a1204; background:var(--accent);
+    padding:3px 8px; border-radius:2px; letter-spacing:0.06em;
+    display:inline-block; margin-bottom:10px;
+  }
+  .disclose p{margin:0 0 8px; color:var(--muted); font-size:14.5px;}
+  .disclose p:last-child{margin-bottom:0;}
+  .disclose strong{color:var(--text);}
+
+  /* alert console (monospace readout) */
+  .console{
+    font-family:var(--mono); font-size:13px; line-height:1.7;
+    background:#070d15; border:1px solid var(--border);
+    border-radius:var(--radius); padding:20px 22px;
+    overflow-x:auto; color:#d8e4ee;
+  }
+  .console .k-window{color:var(--accent);}
+  .console .k-attck{color:var(--ok);}
+  .console ul{margin:10px 0 0; padding-left:20px; color:var(--muted);}
+  .console li{margin-bottom:4px;}
+  .console .hdr{color:var(--muted); font-size:11.5px; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:10px;}
+
+  /* code blocks */
+  pre.code{
+    font-family:var(--mono); font-size:13px; line-height:1.65;
+    background:#070d15; border:1px solid var(--border);
+    border-radius:var(--radius); padding:18px 20px;
+    overflow-x:auto; color:#cfe0ee; margin:0;
+  }
+  .code .c{color:var(--muted);}
+  .code .s{color:var(--ok);}
+  .code .fn{color:var(--accent);}
+
+  table{width:100%; border-collapse:collapse; font-size:14px;}
+  th,td{text-align:left; padding:9px 10px; border-bottom:1px solid var(--border);}
+  th{color:var(--muted); font-family:var(--mono); font-size:11.5px; text-transform:uppercase; letter-spacing:0.06em; font-weight:500;}
+  td{font-family:var(--mono); font-variant-numeric:tabular-nums;}
+  td.attack{font-family:var(--sans);}
+
+  .two-col{display:grid; grid-template-columns:1.1fr 0.9fr; gap:22px;}
+  @media (max-width:800px){ .two-col{grid-template-columns:1fr;} }
+
+  .badge-row{display:flex; gap:10px; flex-wrap:wrap; margin-top:18px;}
+  .badge{
+    font-family:var(--mono); font-size:11.5px; color:var(--muted);
+    border:1px solid var(--border-bright); border-radius:2px;
+    padding:4px 9px;
+  }
+
+  footer{
+    border-top:1px solid var(--border); padding:36px 0 48px;
+    color:var(--muted); font-size:13.5px;
+  }
+  footer a{color:var(--muted); text-decoration:underline; text-decoration-color:var(--border-bright);}
+  footer a:hover{color:var(--accent); text-decoration-color:var(--accent);}
+  .foot-grid{display:flex; justify-content:space-between; gap:20px; flex-wrap:wrap;}
+  .foot-grid .col{min-width:200px;}
+  .foot-grid h4{
+    font-family:var(--mono); font-size:11px; color:var(--text);
+    text-transform:uppercase; letter-spacing:0.08em; margin:0 0 10px;
+  }
+  .foot-grid ul{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:7px;}
+
+  ::selection{background:var(--accent); color:#1a1204;}
+</style>
+</head>
+<body>
+
+<div class="statusbar">
+  <div class="wrap">
+    <a href="#top" class="brand"><span class="led" aria-hidden="true"></span>LUCID-ICS</div>
+    <nav aria-label="Section navigation">
+      <a href="#approach">Approach</a>
+      <a href="#results">Results</a>
+      <a href="#alert">Sample Alert</a>
+      <a href="#paper">Paper</a>
+      <a href="#code">Code</a>
+    </nav>
+  </div>
+</div>
+
+<div id="top"></div>
+<header class="hero">
+  <div class="wrap">
+    <div class="eyebrow">IEEE MILCOM 2026 &middot; ICSCI Workshop Submission</div>
+    <h1>An alert nobody<br>understands gets<br><span class="accentline">dismissed.</span></h1>
+    <p class="lede">
+      LUCID-ICS pairs a conventional, fully-offline ML anomaly detector for SCADA/ICS traffic
+      with a knowledge-grounded explanation layer — MITRE ATT&amp;CK-mapped, NIST&nbsp;800-82-aligned,
+      and ready to hand off to any LLM — so every alert resolves to something a control-room
+      operator can actually check and act on.
+    </p>
+    <div class="hero-actions">
+      <a class="btn btn-primary" href="paper/main.pdf">Read the paper (PDF)</a>
+      <a class="btn btn-ghost" href="https://github.com/sunilgentyala/lucid-ics">View source on GitHub</a>
+    </div>
+
+    <div class="telemetry">
+      <div class="tile"><div class="val">0.993</div><div class="lbl">Precision</div></div>
+      <div class="tile"><div class="val">0.843</div><div class="lbl">Recall</div></div>
+      <div class="tile"><div class="val">0.907</div><div class="lbl">F1</div></div>
+      <div class="tile"><div class="val">0.959</div><div class="lbl">ROC-AUC</div></div>
+      <div class="tile"><div class="val">98.5<small>%</small></div><div class="lbl">Family Acc.</div></div>
+      <div class="tile"><div class="val">23<small>&micro;s</small></div><div class="lbl">Explain Latency</div></div>
+    </div>
+  </div>
+</header>
+
+<section id="approach">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="section-num">01 — APPROACH</span>
+      <h2>Detection stays boring. Explanation is the contribution.</h2>
+      <p>Five stages, each an independently testable module. The only stage that ever touches
+      an LLM is the last one — and it doesn't have to.</p>
+    </div>
+
+    <div class="panel pipeline-figure">
+      <h3>Pipeline</h3>
+      <p class="cap">Simulate/ingest &rarr; feature extraction &rarr; two-stage detection &rarr; attribution &rarr; knowledge-grounded explanation.</p>
+      <img src="assets/img/architecture.png" alt="LUCID-ICS five-stage pipeline diagram: simulate/ingest, feature extraction, two-stage detection (Isolation Forest + Random Forest), attribution (permutation importance + local z-score), and explanation/playbook generation with a swappable LLMBackend interface.">
+    </div>
+
+    <div class="two-col" style="margin-top:18px;">
+      <div class="panel prose">
+        <h3>Why this order</h3>
+        <p>An <strong>Isolation Forest</strong> novelty score and a class-balanced <strong>Random Forest</strong>
+        attack-family classifier run entirely offline, trained on a time-block split so nothing from
+        the test period leaks into training. Their outputs are combined into one risk score that only
+        goes high when a window is <em>both</em> statistically unusual <em>and</em> confidently matched
+        to a known attack pattern — which is what keeps precision at 0.993 across ten independent trials.</p>
+        <p>Every alert then gets a <strong>local attribution</strong> (which features deviated, and by how
+        much, from the learned normal-traffic baseline) and a <strong>MITRE ATT&amp;CK for ICS</strong> mapping,
+        verified technique-by-technique against attack.mitre.org rather than recalled from memory.</p>
+      </div>
+      <div class="panel prose">
+        <h3>The swap point</h3>
+        <p>Narrative generation sits behind a one-method <code style="font-family:var(--mono);color:var(--accent)">LLMBackend</code>
+        interface. The reference implementation is a deterministic, offline <code style="font-family:var(--mono);color:var(--accent)">TemplateBackend</code>
+        &mdash; no API key, no network call, and what every result on this page was measured with.</p>
+        <p><code style="font-family:var(--mono);color:var(--accent)">AnthropicBackend</code> and
+        <code style="font-family:var(--mono);color:var(--accent)">OpenAIBackend</code> are working
+        adapters for sites that want a live-LLM narrative instead. We built them; we didn't have API
+        credentials in the build environment to evaluate them &mdash; so we say exactly that, instead
+        of reporting numbers we don't have.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="results" class="alt">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="section-num">02 — RESULTS</span>
+      <h2>Ten independent six-hour trials, reported in full</h2>
+      <p>Synthetic Modbus/TCP traffic, five injected attack families, 10% of simulated time under
+      attack, 60/40 time-block train/test split. Figures below are from the representative trial (seed 1000).</p>
+    </div>
+
+    <div class="results-grid">
+      <div class="panel">
+        <h3>Attack-family confusion matrix</h3>
+        <p class="cap">Four of five families classified essentially perfectly.</p>
+        <img src="assets/img/confusion_matrix.png" alt="Confusion matrix showing near-perfect classification for normal, unauthorized_write, replay, recon_scan, and dos_flood, but poor recall for sensor_spoofing.">
+      </div>
+      <div class="panel">
+        <h3>ROC — binary attack detection</h3>
+        <p class="cap">AUC 0.952 this trial (mean 0.959 across all ten).</p>
+        <img src="assets/img/roc_curve.png" alt="ROC curve for binary attack detection, area under curve 0.952.">
+      </div>
+      <div class="panel">
+        <h3>Global feature importance</h3>
+        <p class="cap">Within-window value variability dominates &mdash; and explains the gap below.</p>
+        <img src="assets/img/feature_importance.png" alt="Bar chart of permutation feature importance, led by value_std.">
+      </div>
+      <div class="panel">
+        <h3>Risk-score separation</h3>
+        <p class="cap">Well separated at the population level, with a visible low-risk attack tail.</p>
+        <img src="assets/img/risk_score_distribution.png" alt="Histogram of risk scores for normal versus attack windows, showing overlap at low risk scores.">
+      </div>
+    </div>
+
+    <div class="annunciator" role="note">
+      <span class="tag">DISCLOSED LIMITATION</span>
+      <p><strong>Sensor-spoofing (slow-onset sensor drift) is detected far less reliably</strong> than
+      the other four families &mdash; in the worst trial, recall on this family alone drops to roughly
+      0.10. Our per-window statistical features compare each 5-second window to a baseline in isolation;
+      they don't track a trend accumulating gradually <em>across</em> windows, which is exactly how our
+      spoofing attack is designed. This is a real architectural gap, reported because we found it, not
+      smoothed over because it's inconvenient. Section VI of the paper discusses two concrete fixes:
+      cross-window sequential features, and independent sensor cross-validation.</p>
+    </div>
+  </div>
+</section>
+
+<section id="alert">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="section-num">03 — SAMPLE ALERT</span>
+      <h2>What an operator actually sees</h2>
+      <p>Verbatim output from the deterministic template backend on a real detected window &mdash;
+      not a mockup, not an LLM-polished example.</p>
+    </div>
+    <div class="console">
+      <div class="hdr">lucid-ics &middot; triage record &middot; window 3354</div>
+      Window <span class="k-window">3354</span> (t=16770s) was flagged as <span class="k-window">'recon_scan'</span>
+      with risk score 0.91 (classifier confidence 0.95). The strongest contributing signals were:
+      spread of distinct register addresses touched in the window was elevated (+474.9 stdev from the
+      learned normal-traffic baseline); number of distinct Modbus function codes used was elevated
+      (+43.2 stdev); total number of protocol events was elevated (+19.8 stdev). This pattern is
+      consistent with MITRE ATT&amp;CK for ICS technique <span class="k-attck">T0846 (Remote System Discovery)</span>.
+      <ul>
+        <li>Identify and block the scanning source at the perimeter/segmentation firewall; OT networks should not see unsolicited function-code sweeps in normal operation.</li>
+        <li>Review firewall/segmentation rules between IT and OT zones (Purdue Model boundary) for the path the scan traffic used.</li>
+        <li>Treat as a precursor: increase monitoring sensitivity on the scanned assets for the following observation window.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section id="paper" class="alt">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="section-num">04 — PAPER</span>
+      <h2>LUCID-ICS: An Explainable, LLM-Ready Triage Framework for SCADA/ICS Intrusion Detection</h2>
+      <p>Sunil Gentyala &middot; submitted to the 2nd IEEE MILCOM Workshop on Industrial Control
+      Systems and Critical Infrastructure Security (ICSCI 2026)</p>
+    </div>
+
+    <div class="two-col">
+      <div class="panel prose">
+        <h3>Abstract</h3>
+        <p style="font-size:14.5px;">Machine-learning intrusion detection systems for ICS/SCADA are typically
+        evaluated purely on accuracy, yet field adoption is repeatedly blocked by a separate problem:
+        operators cannot act on an alert they do not understand and do not trust. This paper presents
+        LUCID-ICS, an open-source framework pairing a two-stage ML detector with a knowledge-grounded,
+        provider-agnostic explanation layer. Because no public, redistributable ICS dataset could be
+        obtained inside the build environment, we construct and release an original synthetic Modbus/TCP
+        testbed with five injected attack families, and disclose this choice explicitly. Averaged over
+        ten independent six-hour trials, LUCID-ICS achieves 0.99 precision, 0.84 recall, 0.91 F1, and
+        0.96 ROC-AUC, with a mean explanation latency of 23&micro;s. We also report a genuine limitation
+        our evaluation surfaced &mdash; poor recall on slow-onset sensor-spoofing attacks &mdash; as a
+        concrete direction for future work rather than a claimed solved problem.</p>
+        <div class="badge-row">
+          <a class="btn btn-ghost" href="paper/main.pdf">PDF</a>
+          <a class="btn btn-ghost" href="paper/main.tex">LaTeX source</a>
+          <a class="btn btn-ghost" href="paper/references.bib">references.bib</a>
+        </div>
+      </div>
+      <div class="panel">
+        <h3>Cite this work</h3>
+        <p class="cap">BibTeX</p>
+        <pre class="code">@inproceedings{<span class="fn">gentyala2026lucidics</span>,
+  title = {LUCID-ICS: An Explainable,
+    LLM-Ready Triage Framework for
+    SCADA/ICS Intrusion Detection},
+  author = {Gentyala, Sunil},
+  booktitle = {IEEE MILCOM 2026
+    Workshop on Industrial Control
+    Systems and Critical
+    Infrastructure Security (ICSCI)},
+  year = {2026}
+}</pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="code">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="section-num">05 — CODE</span>
+      <h2>Everything above, reproducible in one command</h2>
+      <p>MIT licensed. No API key required to run the full pipeline and reproduce every number on this page.</p>
+    </div>
+
+    <div class="two-col">
+      <div class="panel">
+        <h3>Quickstart</h3>
+        <pre class="code"><span class="c"># install</span>
+pip install -e .
+
+<span class="c"># run the CLI on 1 hour of simulated traffic</span>
+python -m lucid_ics.cli --duration 3600
+
+<span class="c"># reproduce every number/figure in the paper</span>
+python experiments/run_experiment.py \
+  --config experiments/configs/default.yaml</pre>
+      </div>
+      <div class="panel">
+        <h3>Plug in a real LLM</h3>
+        <pre class="code"><span class="c">from</span> lucid_ics.explain <span class="c">import</span> AnthropicBackend
+
+<span class="c"># requires ANTHROPIC_API_KEY + `pip install anthropic`</span>
+backend = <span class="fn">AnthropicBackend</span>(model=<span class="s">"claude-sonnet-5"</span>)
+<span class="c"># pass backend=backend to run_pipeline(...)</span></pre>
+      </div>
+    </div>
+
+    <div class="disclose">
+      <span class="tag">SCOPE, STATED PLAINLY</span>
+      <p><strong>Synthetic-data evaluation.</strong> Every number on this page is on our original
+      synthetic testbed, not captured OT traffic or a public benchmark. The paper's Discussion section
+      explains exactly what evaluating against SWaT/WADI would require.</p>
+      <p><strong>No live-LLM results.</strong> The Anthropic/OpenAI backends are implemented and
+      working, not evaluated &mdash; no API credentials were available in the build environment, and
+      we did not fabricate narrative-quality numbers to fill that gap.</p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-grid">
+      <div class="col">
+        <h4>LUCID-ICS</h4>
+        <p style="max-width:36ch;">Explainable, LLM-ready triage for SCADA/ICS intrusion detection.
+        MIT licensed.</p>
+      </div>
+      <div class="col">
+        <h4>Project</h4>
+        <ul>
+          <li><a href="https://github.com/sunilgentyala/lucid-ics">GitHub repository</a></li>
+          <li><a href="paper/main.pdf">Paper (PDF)</a></li>
+          <li><a href="https://github.com/sunilgentyala/lucid-ics/blob/main/LICENSE">License (MIT)</a></li>
+        </ul>
+      </div>
+      <div class="col">
+        <h4>Workshop</h4>
+        <ul>
+          <li><a href="https://milcom2026.ieee-milcom.org/ieee-milcom-2026-211/pages/ws14-2nd-international-workshop-industrial-control-systems-and-critical">IEEE MILCOM 2026 ICSCI</a></li>
+          <li><a href="https://edas.info/N35547">EDAS submission page</a></li>
+        </ul>
+      </div>
+    </div>
+    <p style="margin-top:28px; font-family:var(--mono); font-size:12px; color:var(--muted-dim);">
+      &copy; 2026 Sunil Gentyala.
+    </p>
+  </div>
+</footer>
+
+</body>
+</html>

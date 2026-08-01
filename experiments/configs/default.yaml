@@ -1,0 +1,17 @@
+# Default experiment configuration used to produce the results reported in
+# the paper (paper/main.tex, Section V). Overridable via
+# `python run_experiment.py --config configs/default.yaml`.
+
+duration_s: 21600.0          # 6 simulated hours per trial
+poll_interval_s: 1.0
+jitter_s: 0.05
+setpoint: 60.0
+noise_std: 0.4
+attack_time_fraction: 0.10
+window_s: 5.0
+train_frac: 0.6
+
+n_trials: 10                  # independent trials (different seeds) for mean +/- std
+base_seed: 1000
+
+output_dir: ../results
