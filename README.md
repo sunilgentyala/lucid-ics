@@ -18,7 +18,7 @@
 
 ---
 
-Companion open-source framework for a paper submitted to the 2nd IEEE MILCOM Workshop on Industrial Control Systems and Critical Infrastructure Security (ICSCI 2026). The manuscript itself is under review and is not published here; everything else — the framework, experiment harness, and every reported result — is public in this repository.
+Companion open-source framework for a paper accepted at the 2nd IEEE MILCOM Workshop on Industrial Control Systems and Critical Infrastructure Security (ICSCI 2026). Per IEEE's copyright policy, the manuscript itself is not published in this repository or on the project site — only the abstract and formal citation (with a link to IEEE Xplore) will be added once available; everything else — the framework, experiment harness, and every reported result — is public here.
 
 ## Why
 
@@ -109,7 +109,7 @@ docs/                  GitHub Pages project site
 
 ## Paper status
 
-The manuscript (LaTeX source and compiled PDF) is intentionally not included in this repository while it is under review at IEEE MILCOM ICSCI 2026; a citation will be added here once that's resolved.
+Accepted for publication at IEEE MILCOM 2026 WS14 (ICSCI); camera-ready in progress ahead of IEEE Xplore publication. The manuscript (LaTeX source and compiled PDF) is intentionally never included in this repository or hosted on the project site, in line with IEEE's copyright policy once copyright is transferred — only the abstract and formal citation (with a link to IEEE Xplore) will be added here once available.
 
 ## License
 
