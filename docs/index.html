@@ -438,9 +438,10 @@
       (t=16896s) was flagged as <span class="k-window">'sensor_spoofing'</span>
       with risk score 0.32 (classifier confidence 0.58). The strongest contributing signals were:
       variability of reported values within the window was suppressed (-3.2 stdev from the learned
-      normal-traffic baseline); fraction of repeated/duplicate values was suppressed (-0.5 stdev);
-      largest single-step change in a reported value was elevated (+0.3 stdev). This pattern is
-      consistent with MITRE ATT&amp;CK for ICS technique <span class="k-attck">T1692.002 (Reporting Message)</span>.
+      normal-traffic baseline); fraction of repeated/duplicate values was suppressed (-0.5 stdev from the
+      learned normal-traffic baseline); largest single-step change in a reported value was elevated
+      (+0.3 stdev from the learned normal-traffic baseline). This pattern is
+      consistent with MITRE ATT&amp;CK for ICS technique <span class="k-attck">T1692.002 (Unauthorized Message: Reporting Message)</span>.
       <ul>
         <li>Cross-validate the reported sensor value against an independent estimate (e.g., a physics-based or redundant-sensor check) rather than trusting the single reading.</li>
         <li>Do not let the operator dashboard auto-acknowledge the deviation; require manual confirmation given the risk of a deception attack masking a real process excursion.</li>

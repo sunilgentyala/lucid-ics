@@ -134,6 +134,17 @@ _FEATURE_DESCRIPTIONS = {
 }
 
 
+def _short_technique_name(name: str) -> str:
+    """The knowledge base's attck_name carries renumbering history (e.g.
+    "... (formerly 'Spoof Reporting Message', T0856)") for the paper's
+    methods description and Table I. That history is noise in a per-alert
+    narrative an operator reads dozens of times a shift, so narratives use
+    just the current technique name."""
+    marker = " (formerly"
+    idx = name.find(marker)
+    return name[:idx] if idx != -1 else name
+
+
 def _feature_phrase(name: str, z: float) -> str:
     desc = _FEATURE_DESCRIPTIONS.get(name, name.replace("_", " "))
     direction = "elevated" if z > 0 else "suppressed"
@@ -178,7 +189,7 @@ def explain_alert(
         feature_phrases = [_feature_phrase(name, z) for name, z in attribution.top_features]
         attck_phrase = (
             f" This pattern is consistent with MITRE ATT&CK for ICS technique "
-            f"{technique.attck_id} ({technique.attck_name})." if technique else ""
+            f"{technique.attck_id} ({_short_technique_name(technique.attck_name)})." if technique else ""
         )
         plain_summary = _PLAIN_LANGUAGE_SUMMARY.get(
             attack_type, f"Unusual activity was observed on this equipment (type: {attack_type})."
