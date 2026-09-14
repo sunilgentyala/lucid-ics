@@ -101,6 +101,20 @@ class OpenAIBackend(LLMBackend):
         return resp.choices[0].message.content or ""
 
 
+_PLAIN_LANGUAGE_SUMMARY = {
+    "unauthorized_write": "Someone who is not the normal control system wrote a command to this "
+        "equipment.",
+    "replay": "A previously seen command was sent again, out of its normal sequence -- consistent "
+        "with an attacker replaying captured traffic rather than a real operator action.",
+    "sensor_spoofing": "A sensor reading on this equipment does not match how the process normally "
+        "behaves -- it may be reporting false data rather than the true process state.",
+    "recon_scan": "Something is probing this equipment the way an attacker maps out a network "
+        "before an attack, not the way normal operations traffic behaves.",
+    "dos_flood": "This equipment is being flooded with far more traffic than normal, which can "
+        "slow down or block its real control commands.",
+}
+
+
 _FEATURE_DESCRIPTIONS = {
     "unauthorized_write_count": "writes to actuator registers from a source other than the "
         "authorized HMI",
@@ -166,9 +180,12 @@ def explain_alert(
             f" This pattern is consistent with MITRE ATT&CK for ICS technique "
             f"{technique.attck_id} ({technique.attck_name})." if technique else ""
         )
+        plain_summary = _PLAIN_LANGUAGE_SUMMARY.get(
+            attack_type, f"Unusual activity was observed on this equipment (type: {attack_type})."
+        )
         narrative = (
-            f"Window {window} (t={t_start:.0f}s) was flagged as '{attack_type}' with risk score "
-            f"{risk_score:.2f} (classifier confidence {family_confidence:.2f}). "
+            f"{plain_summary} Window {window} (t={t_start:.0f}s) was flagged as '{attack_type}' "
+            f"with risk score {risk_score:.2f} (classifier confidence {family_confidence:.2f}). "
             f"The strongest contributing signals were: {'; '.join(feature_phrases)}."
             f"{attck_phrase}"
         )

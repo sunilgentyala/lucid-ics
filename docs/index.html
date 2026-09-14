@@ -394,8 +394,8 @@
       </div>
       <div class="panel">
         <h3>ROC — binary attack detection</h3>
-        <p class="cap">AUC 0.952 this trial (mean 0.959 across all ten).</p>
-        <img src="assets/img/roc_curve.png" alt="ROC curve for binary attack detection, area under curve 0.952.">
+        <p class="cap">AUC 0.941 this trial (mean 0.959 across all ten).</p>
+        <img src="assets/img/roc_curve.png" alt="ROC curve for binary attack detection, area under curve 0.941.">
       </div>
       <div class="panel">
         <h3>Global feature importance</h3>
@@ -411,13 +411,14 @@
 
     <div class="annunciator" role="note">
       <span class="tag">DISCLOSED LIMITATION</span>
-      <p><strong>Sensor-spoofing (slow-onset sensor drift) is detected far less reliably</strong> than
-      the other four families &mdash; in the worst trial, recall on this family alone drops to roughly
-      0.10. Our per-window statistical features compare each 5-second window to a baseline in isolation;
-      they don't track a trend accumulating gradually <em>across</em> windows, which is exactly how our
-      spoofing attack is designed. This is a real architectural gap, reported because we found it, not
-      smoothed over because it's inconvenient. Section VI of the paper discusses two concrete fixes:
-      cross-window sequential features, and independent sensor cross-validation.</p>
+      <p><strong>Sensor-spoofing (slow-onset sensor drift) is detected far less reliably and far less
+      consistently</strong> than the other four families &mdash; mean recall 0.39 &plusmn; 0.22 across
+      ten trials, ranging from 0.04 in the worst trial to 0.76 in the best, versus &ge; 0.98 mean recall
+      for every other family. Our per-window statistical features compare each 5-second window to a
+      baseline in isolation; they don't track a trend accumulating gradually <em>across</em> windows,
+      which is exactly how our spoofing attack is designed. This is a real architectural gap, reported
+      because we found it, not smoothed over because it's inconvenient. Section VI of the paper discusses
+      two concrete fixes: cross-window sequential features, and independent sensor cross-validation.</p>
     </div>
   </div>
 </section>
@@ -431,17 +432,19 @@
       not a mockup, not an LLM-polished example.</p>
     </div>
     <div class="console">
-      <div class="hdr">lucid-ics &middot; triage record &middot; window 3354</div>
-      Window <span class="k-window">3354</span> (t=16770s) was flagged as <span class="k-window">'recon_scan'</span>
-      with risk score 0.91 (classifier confidence 0.95). The strongest contributing signals were:
-      spread of distinct register addresses touched in the window was elevated (+474.9 stdev from the
-      learned normal-traffic baseline); number of distinct Modbus function codes used was elevated
-      (+43.2 stdev); total number of protocol events was elevated (+19.8 stdev). This pattern is
-      consistent with MITRE ATT&amp;CK for ICS technique <span class="k-attck">T0846 (Remote System Discovery)</span>.
+      <div class="hdr">lucid-ics &middot; triage record &middot; window 3379</div>
+      A sensor reading on this equipment does not match how the process normally behaves &ndash; it may
+      be reporting false data rather than the true process state. Window <span class="k-window">3379</span>
+      (t=16896s) was flagged as <span class="k-window">'sensor_spoofing'</span>
+      with risk score 0.32 (classifier confidence 0.58). The strongest contributing signals were:
+      variability of reported values within the window was suppressed (-3.2 stdev from the learned
+      normal-traffic baseline); fraction of repeated/duplicate values was suppressed (-0.5 stdev);
+      largest single-step change in a reported value was elevated (+0.3 stdev). This pattern is
+      consistent with MITRE ATT&amp;CK for ICS technique <span class="k-attck">T1692.002 (Reporting Message)</span>.
       <ul>
-        <li>Identify and block the scanning source at the perimeter/segmentation firewall; OT networks should not see unsolicited function-code sweeps in normal operation.</li>
-        <li>Review firewall/segmentation rules between IT and OT zones (Purdue Model boundary) for the path the scan traffic used.</li>
-        <li>Treat as a precursor: increase monitoring sensitivity on the scanned assets for the following observation window.</li>
+        <li>Cross-validate the reported sensor value against an independent estimate (e.g., a physics-based or redundant-sensor check) rather than trusting the single reading.</li>
+        <li>Do not let the operator dashboard auto-acknowledge the deviation; require manual confirmation given the risk of a deception attack masking a real process excursion.</li>
+        <li>Escalate to physical/process safety systems if plausible physical harm is possible.</li>
       </ul>
     </div>
   </div>
@@ -452,8 +455,8 @@
     <div class="section-head">
       <span class="section-num">04 — PAPER</span>
       <h2>LUCID-ICS: An Explainable, LLM-Ready Triage Framework for SCADA/ICS Intrusion Detection</h2>
-      <p>Submitted to the 2nd IEEE MILCOM Workshop on Industrial Control Systems and Critical
-      Infrastructure Security (ICSCI 2026)</p>
+      <p>Accepted for publication, IEEE MILCOM 2026 Workshop on Industrial Control Systems and Critical
+      Infrastructure Security (ICSCI), camera-ready</p>
     </div>
 
     <div class="authors-grid">

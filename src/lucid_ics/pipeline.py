@@ -22,6 +22,8 @@ from .explain import LLMBackend, TriageRecord, explain_alert
 from .features import extract_window_features
 from .simulator import SimulationConfig, generate_dataset
 
+ATTACK_FAMILIES = ["unauthorized_write", "replay", "sensor_spoofing", "recon_scan", "dos_flood"]
+
 
 @dataclasses.dataclass
 class EvalMetrics:
@@ -34,6 +36,11 @@ class EvalMetrics:
     mean_explanation_latency_ms: float
     n_train_windows: int
     n_test_windows: int
+    # Per-attack-family recall on the family classifier (of windows truly
+    # belonging to family X, the fraction correctly labeled X) -- reported
+    # per trial so recall variance can be attributed to a specific family
+    # rather than only inspected via one trial's confusion matrix.
+    family_recall: dict[str, float] = dataclasses.field(default_factory=dict)
 
 
 def time_split(features: pd.DataFrame, train_frac: float = 0.6):
@@ -72,6 +79,11 @@ def run_pipeline(
         mean_explanation_latency_ms=0.0,  # filled in below
         n_train_windows=len(train),
         n_test_windows=len(test),
+        family_recall=dict(zip(
+            ATTACK_FAMILIES,
+            recall_score(y_family_true, result.predicted_family, labels=ATTACK_FAMILIES,
+                         average=None, zero_division=0).tolist(),
+        )),
     )
 
     records: list[TriageRecord] = []

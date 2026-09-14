@@ -30,9 +30,10 @@ class TechniqueMapping:
 KNOWLEDGE_BASE: dict[str, TechniqueMapping] = {
     "unauthorized_write": TechniqueMapping(
         attack_type="unauthorized_write",
-        attck_id="T0855",
-        attck_name="Unauthorized Command Message",
-        attck_url="https://attack.mitre.org/techniques/T0855/",
+        attck_id="T1692.001",
+        attck_name="Unauthorized Message: Command Message (formerly 'Unauthorized Command "
+                    "Message', T0855)",
+        attck_url="https://attack.mitre.org/techniques/T1692/001/",
         playbook=[
             "Cross-check the writing source against the authorized engineering/HMI asset list; "
             "isolate the source host at the network layer if it is not on that list.",
@@ -44,9 +45,9 @@ KNOWLEDGE_BASE: dict[str, TechniqueMapping] = {
     ),
     "replay": TechniqueMapping(
         attack_type="replay",
-        attck_id="T0855",
-        attck_name="Unauthorized Command Message (replayed)",
-        attck_url="https://attack.mitre.org/techniques/T0855/",
+        attck_id="T1692.001",
+        attck_name="Unauthorized Message: Command Message (replayed)",
+        attck_url="https://attack.mitre.org/techniques/T1692/001/",
         playbook=[
             "Check for duplicate/out-of-sequence message identifiers or timestamps inconsistent "
             "with the polling cycle -- a hallmark of replayed traffic.",
@@ -56,13 +57,14 @@ KNOWLEDGE_BASE: dict[str, TechniqueMapping] = {
             "Rotate any session-level credentials on the affected link and confirm actuator state.",
         ],
         notes="ATT&CK for ICS has no dedicated 'replay' technique; mapped to the closest applicable "
-              "technique (Unauthorized Command Message) since a replayed message is, from the "
-              "target's perspective, an unauthorized command.",
+              "technique (Unauthorized Message: Command Message) since a replayed message is, from "
+              "the target's perspective, an unauthorized command.",
     ),
     "sensor_spoofing": TechniqueMapping(
         attack_type="sensor_spoofing",
         attck_id="T1692.002",
-        attck_name="Unauthorized Message: Reporting Message (formerly 'Spoof Reporting Message')",
+        attck_name="Unauthorized Message: Reporting Message (formerly 'Spoof Reporting Message', "
+                    "T0856)",
         attck_url="https://attack.mitre.org/techniques/T1692/002/",
         playbook=[
             "Cross-validate the reported sensor value against an independent estimate (e.g., a "

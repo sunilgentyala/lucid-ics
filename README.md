@@ -46,9 +46,9 @@ ML-based ICS/SCADA intrusion detectors are usually evaluated purely on accuracy.
 | ROC-AUC | 0.959 ± 0.035 |
 | Attack-family accuracy | 0.985 ± 0.011 |
 | Attack-family macro-F1 | 0.914 ± 0.039 |
-| Mean explanation latency (template backend) | 23.3 ± 3.5 µs |
+| Mean explanation latency (template backend) | 11.4 ± 2.1 µs |
 
-Four of five attack families are detected essentially perfectly. **Sensor-spoofing (slow-onset sensor drift) is detected far less reliably** — this is a real, reported limitation (not hidden): per-window statistical features can't see a trend that unfolds gradually across many windows.
+Four of five attack families are detected essentially perfectly (per-family recall ≥ 0.98). **Sensor-spoofing (slow-onset sensor drift) is detected far less reliably and far less consistently** — mean recall 0.39 ± 0.22, ranging 0.04–0.76 across the ten trials. This is a real, reported limitation (not hidden): per-window statistical features can't see a trend that unfolds gradually across many windows.
 
 <table>
 <tr>
